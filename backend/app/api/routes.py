@@ -1,5 +1,6 @@
 """FastAPI API Routes for Ask, Sessions, Documents, and Stats."""
 import json
+import logging
 from pathlib import Path
 from typing import List, Optional, Any
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
@@ -22,7 +23,12 @@ from app.rag.rag_pipeline import run_legal_rag_chain, contextualize_query
 from app.rag.chroma_manager import get_vectorstore
 from app.ingestion.pipeline import ingest_file
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/api")
+
+ALLOWED_UPLOAD_EXTENSIONS = {".pdf", ".docx", ".md", ".txt"}
+MAX_UPLOAD_BYTES = 50 * 1024 * 1024
 
 # Lazy-loaded vectorstore & retriever singletons
 _vectorstore = None
@@ -105,7 +111,8 @@ def ask_legal_question(req: AskRequest, db: Session = Depends(get_db)):
             chat_history=chat_history
         )
 
-        # Session Persistence (with fallback)
+        # Session persistence. A failure is logged and the answer is still returned;
+        # the session_id is left as the client sent it (no fake placeholder id).
         session_id = req.session_id
         try:
             if not session_id:
@@ -117,15 +124,17 @@ def ask_legal_question(req: AskRequest, db: Session = Depends(get_db)):
             save_message(db, session_id=session_id, role="user", content=user_query)
             save_message(db, session_id=session_id, role="assistant", content=result["answer"], citations=result["citations"])
         except Exception:
-            session_id = session_id or "session_fallback"
+            db.rollback()
+            logger.exception("Failed to persist chat messages (session=%s)", session_id)
 
         result["session_id"] = session_id
         # Standardize return format for sources/citations
         result["sources"] = result.get("citations") or []
         return result
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception("Ask pipeline failed")
+        raise HTTPException(status_code=500, detail="The question could not be processed. See server logs.")
 
 
 
@@ -145,7 +154,8 @@ def list_sessions(db: Session = Depends(get_db)):
             for s in sessions
         ]
     except Exception:
-        return []
+        logger.exception("Failed to list sessions")
+        raise HTTPException(status_code=503, detail="Chat history database is unavailable.")
 
 
 @router.post("/sessions")
@@ -208,24 +218,31 @@ def get_messages(session_id: str, db: Session = Depends(get_db)):
             for m in messages
         ]
     except Exception:
-        return []
+        logger.exception("Failed to load messages (session=%s)", session_id)
+        raise HTTPException(status_code=503, detail="Chat history database is unavailable.")
 
 
 @router.post("/documents/upload")
 async def upload_document(file: UploadFile = File(...)):
     """Uploads and indexes ad-hoc legal document into vector store."""
+    # Strip any directory parts from the client-supplied name (blocks path traversal)
+    safe_name = Path(file.filename or "").name
+    if not safe_name or Path(safe_name).suffix.lower() not in ALLOWED_UPLOAD_EXTENSIONS:
+        raise HTTPException(status_code=400, detail="Unsupported file type. Allowed: PDF, DOCX, MD, TXT.")
+
+    content = await file.read(MAX_UPLOAD_BYTES + 1)
+    if len(content) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="File is larger than 50 MB.")
+
+    upload_dir = Path(__file__).resolve().parents[3] / "data" / "raw"
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    file_path = upload_dir / safe_name
+    file_path.write_bytes(content)
+
     try:
-        upload_dir = Path(__file__).resolve().parents[3] / "data" / "raw"
-        upload_dir.mkdir(parents=True, exist_ok=True)
-        file_path = upload_dir / file.filename
-
-        with open(file_path, "wb") as f:
-            f.write(await file.read())
-
-        # Ingest document
         docs = ingest_file(file_path)
         vs = get_active_vectorstore()
-        
+
         texts = [d.page_content for d in docs]
         metadatas = [d.metadata for d in docs]
         vs.add_texts(texts=texts, metadatas=metadatas)
@@ -234,15 +251,15 @@ async def upload_document(file: UploadFile = File(...)):
         invalidate_corpus_cache()
         # The BM25 index is built from the corpus, so it must be rebuilt to see the new chunks
         reset_retrieval_caches()
+    except Exception:
+        logger.exception("Document ingestion failed (file=%s)", safe_name)
+        raise HTTPException(status_code=500, detail="Document ingestion failed. See server logs.")
 
-        return {
-            "status": "success",
-            "filename": file.filename,
-            "chunks_added": len(docs)
-        }
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return {
+        "status": "success",
+        "filename": safe_name,
+        "chunks_added": len(docs)
+    }
 
 
 @router.get("/documents/stats")

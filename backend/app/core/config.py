@@ -22,6 +22,13 @@ class Settings(BaseSettings):
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     OLLAMA_MODEL: str = "qwen3:1:1.7b"
     DEFAULT_LLM_PROVIDER: str = "groq"
+    # Comma-separated providers to try if the selected one fails, e.g. "gemini,ollama".
+    # Empty (default) means no fallback: only the selected provider is used.
+    LLM_FALLBACK_PROVIDERS: str = ""
+
+    # Comma-separated origins allowed to call the API from a browser.
+    # Empty (default) means same-origin only, which is what the bundled UI needs.
+    CORS_ORIGINS: str = ""
 
 
     # LangSmith Tracing

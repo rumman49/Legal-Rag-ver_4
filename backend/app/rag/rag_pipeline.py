@@ -361,8 +361,9 @@ def run_legal_rag_chain(
 
     primary_provider = provider or settings.DEFAULT_LLM_PROVIDER
     providers_to_try = [primary_provider]
-    for p in ["groq", "gemini", "ollama"]:
-        if p not in providers_to_try:
+    for p in (settings.LLM_FALLBACK_PROVIDERS or "").split(","):
+        p = p.strip()
+        if p and p not in providers_to_try:
             providers_to_try.append(p)
 
     answer = None

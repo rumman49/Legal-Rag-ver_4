@@ -36,7 +36,7 @@ Process-wide singletons (the `get_*` functions in `rag/chroma_manager.py` and `r
 4. `run_legal_rag_chain` (`rag/rag_pipeline.py`) builds the answer:
    - Greetings and identity questions return canned replies without retrieval or an LLM call.
    - If retrieval returned nothing, it returns a fixed decline message and makes no LLM call. This is the gate that keeps the model from answering without statutory context.
-   - Otherwise it builds a prompt from a language-aware system prompt, the last 6 history turns, and the retrieved context. It tries providers in the order primary → groq → gemini → ollama, and applies the requested model name only to the primary provider.
+   - Otherwise it builds a prompt from a language-aware system prompt, the last 6 history turns, and the retrieved context. It uses only the primary provider (`DEFAULT_LLM_PROVIDER`) unless `LLM_FALLBACK_PROVIDERS` in `.env` lists fallbacks (comma-separated, tried in order). The requested model name applies only to the primary provider.
    - It builds the `citations` list from document metadata, mapping raw scores to display percentages.
 5. The route writes the user and assistant messages to MySQL (`core/db_service.py`).
 
