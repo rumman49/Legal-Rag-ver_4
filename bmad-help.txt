@@ -1,0 +1,3 @@
+/bmad-help
+/bmad-project-context
+/bmad-agent-architect

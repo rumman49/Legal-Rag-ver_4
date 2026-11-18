@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legal RAG — Indian Legal Intelligence Studio</title>
+    <link rel="stylesheet" href="/static/styles.css?v=4.4.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- Fullscreen Edge-to-Edge Layout Container -->
+<div class="app-layout">
+
+    <!-- ====================================================
+         LEFT SIDEBAR
+    ===================================================== -->
+    <aside id="app-sidebar" class="sidebar-island">
+
+        <!-- Brand Header -->
+        <div class="sidebar-brand-row">
+            <div id="brand-toggle" class="brand-identity" title="Legal RAG Studio">
+                <div class="brand-orb-icon">⚖️</div>
+                <div class="brand-identity-text">
+                    <span class="brand-title">Legal RAG</span>
+                    <span class="brand-edition">AI Studio v4.0</span>
+                </div>
+            </div>
+            <button id="sidebar-collapse-btn" class="sidebar-toggle-action" type="button" title="Collapse / Expand Sidebar (Ctrl+[)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="9" y1="3" x2="9" y2="21"></line>
+                </svg>
+            </button>
+        </div>
+
+        <!-- + New Chat Pill Button -->
+        <button id="new-chat-btn" class="btn-new-chat-pill" type="button" title="Start a new chat session (Ctrl+K)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>New Chat</span>
+            <kbd class="kbd-pill">⌘K</kbd>
+        </button>
+
+        <!-- Sidebar Navigation Scroll Area -->
+        <div class="sidebar-scroll-body">
+
+            <!-- Section 1: Features -->
+            <div class="nav-group">
+                <div class="nav-group-title">Features</div>
+                <div class="nav-item active" id="nav-chat-tab">
+                    <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    <span>Chat Assistant</span>
+                </div>
+                <div class="nav-item" id="nav-archived-tab">
+                    <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+                    <span>Past Sessions</span>
+                </div>
+                <div class="nav-item" id="nav-library-tab">
+                    <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    <span>Bare Acts Library</span>
+                </div>
+            </div>
+
+            <!-- Recent Sessions List (Past Conversations) -->
+            <div id="sessions-container" class="nav-group">
+                <div class="nav-group-title" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Saved Conversations</span>
+                    <button id="clear-all-sessions-btn" class="session-clear-all-btn" type="button" title="Delete all saved conversations">Clear All</button>
+                </div>
+                <div id="sessions-list" class="sessions-items-list"></div>
+            </div>
+
+            <!-- Section 2: Legal Frameworks & Workspaces -->
+            <div class="nav-group">
+                <div class="nav-group-title">Legal Frameworks</div>
+                <div class="nav-item filter-trigger" data-statute="BNS 2023 ">
+                    <span class="nav-emoji">⚖️</span>
+                    <span>BNS 2023 (Penal Code)</span>
+                </div>
+                <div class="nav-item filter-trigger" data-statute="BNSS 2023 ">
+                    <span class="nav-emoji">🛡️</span>
+                    <span>BNSS 2023 (Procedure)</span>
+                </div>
+                <div class="nav-item filter-trigger" data-statute="BSA 2023 ">
+                    <span class="nav-emoji">📜</span>
+                    <span>BSA 2023 (Evidence)</span>
+                </div>
+                <div class="nav-item filter-trigger" data-statute="Constitution of India Article ">
+                    <span class="nav-emoji">🏛️</span>
+                    <span>Constitution of India</span>
+                </div>
+                <div class="nav-item filter-trigger" data-statute="Hindu Marriage Act ">
+                    <span class="nav-emoji">💍</span>
+                    <span>Family & Civil Law</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Sidebar Bottom Premium Card (Knowledge Base) -->
+        <div class="sidebar-bottom-premium-card" id="kb-card">
+            <div class="premium-badge-sparkle">✨</div>
+            <div class="premium-card-title">Knowledge Base</div>
+            <div class="premium-card-sub" id="kb-doc-count">Connecting to Knowledge Base...</div>
+            <button class="btn-upgrade-pill" id="open-library-btn" type="button">Explore Library ↗</button>
+        </div>
+
+    </aside>
+
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div id="sidebar-mobile-backdrop" class="sidebar-mobile-backdrop hidden"></div>
+
+    <!-- ====================================================
+         RIGHT WORKSPACE ISLAND
+    ===================================================== -->
+    <main class="workspace-island">
+
+        <!-- Top Header Navigation -->
+        <header class="workspace-top-bar">
+            <!-- Left: Mobile Hamburger + Model Selector Pill -->
+            <div class="top-bar-left">
+                <button id="mobile-sidebar-btn" class="btn-mobile-hamburger" type="button" title="Open Sidebar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+
+                <div class="model-pill-selector">
+                    <span class="model-sparkle-dot"></span>
+                    <select id="model-selector" class="model-select-dropdown" aria-label="Select Legal AI Model">
+                        <option value="groq" selected>Groq — Qwen 3.8 (27B)</option>
+                        <option value="gemini">Google — Gemini Flash</option>
+                        <option value="ollama">Ollama — Local Model</option>
+                    </select>
+                    <svg class="model-dropdown-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+            </div>
+
+            <!-- Right: Studio Controls -->
+            <div class="top-bar-actions">
+                <button id="open-settings-btn" class="btn-studio-action" type="button" title="View ChromaDB and System Status">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    <span>Status</span>
+                </button>
+                <button id="export-chat-btn" class="btn-studio-action" type="button" title="Export conversation transcript">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span>Export</span>
+                </button>
+                <button id="clear-current-chat-btn" class="btn-studio-action danger" type="button" title="Clear current messages">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    <span>Clear</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Chat Viewport & Messages Scroll Area -->
+        <div id="chat-container" class="workspace-content-viewport">
+
+            <!-- Hero Welcome Center (Zyricon Centerpiece) -->
+            <div id="empty-state" class="zyricon-hero-center">
+
+                <!-- Glowing Purple 3D Crystal Orb -->
+                <div class="crystal-purple-orb-wrap">
+                    <div class="crystal-purple-orb">
+                        <div class="orb-inner-shine"></div>
+                    </div>
+                    <div class="orb-reflection-glow"></div>
+                </div>
+
+                <!-- Hero Title & Subtitle -->
+                <h1 class="zyricon-hero-headline">Ready to Explore Indian Law?</h1>
+                <p class="zyricon-hero-sub" id="hero-statute-sub">Strictly grounded in Constitution of India (106th Amendment), BNS 2023, BNSS 2023, BSA 2023, and indexed Bare Acts.</p>
+
+                <!-- Quick Statute Pill Tags -->
+                <div class="hero-quick-statute-tags">
+                    <button class="hero-tag-pill" type="button" data-prompt="Section 63 and Section 64 of BNS (Bharatiya Nyaya Sanhita) kya hai?">
+                        <span>⚖️ BNS 2023</span>
+                    </button>
+                    <button class="hero-tag-pill" type="button" data-prompt="What does Section 103 cover across BNSS and other Indian Acts?">
+                        <span>🛡️ BNSS 2023</span>
+                    </button>
+                    <button class="hero-tag-pill" type="button" data-prompt="What is Article 44 of the Constitution of India regarding Uniform Civil Code?">
+                        <span>🏛️ Constitution</span>
+                    </button>
+                    <button class="hero-tag-pill" type="button" data-prompt="What is Section 138 of Negotiable Instruments Act for cheque bounce?">
+                        <span>💳 NI Act 138</span>
+                    </button>
+                </div>
+
+                <!-- Center Zyricon Input Card -->
+                <div class="zyricon-center-card-wrap">
+                    <!-- Live Keyword Autocomplete Popover -->
+                    <div id="keyword-suggestions-popover" class="autocomplete-popover hidden">
+                        <div class="popover-header">
+                            <span>💡 Legal Sections & Topics Quick Match</span>
+                            <span class="popover-hint">Press <strong>Tab</strong> or <strong>↑/↓</strong> to select</span>
+                        </div>
+                        <div id="keyword-suggestions-list" class="popover-list"></div>
+                    </div>
+
+                    <!-- Attached Files Dock Bar -->
+                    <div id="attached-files-bar" class="attached-dock-bar hidden">
+                        <div class="attached-dock-header">
+                            <span id="attached-files-count">0 PDFs attached</span>
+                            <div class="attached-dock-actions">
+                                <button id="upload-button" class="btn-instant-index" type="button">⚡ Index to Knowledge Base</button>
+                                <button id="clear-attached-btn" class="btn-clear-attached" type="button">✕</button>
+                            </div>
+                        </div>
+                        <div id="attached-files-list" class="attached-dock-chips"></div>
+                        <div id="upload-status" class="dock-upload-status-text"></div>
+                    </div>
+
+                    <!-- Zyricon Prompt Card -->
+                    <form id="ask-form" class="zyricon-prompt-card">
+                        <div class="prompt-upper-row">
+                            <span class="prompt-sparkle-icon">✨</span>
+                            <textarea
+                                id="question"
+                                name="question"
+                                rows="2"
+                                maxlength="3500"
+                                required
+                                autocomplete="off"
+                                placeholder="Ask any legal question in English, Hindi, or Hinglish (e.g. 'Section 64 BNS' or 'Article 44')..."
+                            ></textarea>
+                        </div>
+                        <div class="prompt-lower-toolbar">
+                            <div class="prompt-tools-left">
+                                <label for="pdf-input" class="tool-btn" title="Attach legal Document (PDF, TXT, DOCX, MD) to index">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                                    <span>Attach Doc</span>
+                                </label>
+                                <input id="pdf-input" type="file" multiple accept=".pdf,.txt,.docx,.md,text/markdown,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
+
+                                <button class="tool-btn" id="btn-quick-statute-filter" type="button" title="Filter by legal statute">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                                    <span>Statutes</span>
+                                </button>
+                            </div>
+                            <div class="prompt-tools-right">
+                                <button id="voice-input-btn" class="btn-voice-mic" type="button" title="Auto-detect Voice Input (English/Hindi/Hinglish)">
+                                    <span id="voice-icon">🎙️</span>
+                                    <span id="voice-pulse-ring" class="voice-ring hidden"></span>
+                                </button>
+                                <button id="ask-button" type="submit" class="btn-zyricon-send" title="Send question (Enter)">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Bottom 3-Card Discovery Grid (Like Zyricon) -->
+                <div class="zyricon-bottom-grid">
+                    <div class="discovery-feature-card" data-prompt="Section 63 and Section 64 of BNS 2023 for rape definition and punishment">
+                        <div class="feature-card-top">
+                            <div class="feature-card-title-group">
+                                <span class="feature-icon">⚖️</span>
+                                <strong>Criminal Codes</strong>
+                            </div>
+                            <span class="feature-badge">BNS §64 & §103</span>
+                        </div>
+                        <p class="feature-card-desc">Definition of rape, consent parameters, murder penalties, & mob lynching clauses under BNS 2023.</p>
+                    </div>
+
+                    <div class="discovery-feature-card" data-prompt="What is Article 44 of Constitution of India regarding Uniform Civil Code?">
+                        <div class="feature-card-top">
+                            <div class="feature-card-title-group">
+                                <span class="feature-icon">🏛️</span>
+                                <strong>Constitutional Law</strong>
+                            </div>
+                            <span class="feature-badge">Article 44 UCC</span>
+                        </div>
+                        <p class="feature-card-desc">Uniform Civil Code Directive Principles, Article 21 Right to Privacy, & State Assembly disqualifications.</p>
+                    </div>
+
+                    <div class="discovery-feature-card" data-prompt="What does Section 103 BNSS cover for search of closed places and Section 138 NI Act?">
+                        <div class="feature-card-top">
+                            <div class="feature-card-title-group">
+                                <span class="feature-icon">📜</span>
+                                <strong>Civil & Procedures</strong>
+                            </div>
+                            <span class="feature-badge">BNSS & NI Act</span>
+                        </div>
+                        <p class="feature-card-desc">Search of closed places, anticipatory bail, e-FIR, Res Judicata doctrine, & Section 138 cheque dishonour.</p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Floating Bottom Dock Bar (When messages are active) -->
+        <div id="floating-dock-wrap" class="floating-workspace-dock hidden">
+            <!-- Popover & Attached files are dynamically attached here when chat is running -->
+            <div id="dock-prompt-placeholder"></div>
+        </div>
+
+    </main>
+
+</div>
+
+<!-- ====================================================
+     SLIDE-OUT LEGAL LIBRARY & STATUTES DRAWER
+===================================================== -->
+<div id="kb-modal" class="drawer-backdrop hidden">
+    <div class="drawer-container">
+        <div class="drawer-header">
+            <div class="drawer-title-group">
+                <span class="drawer-icon">📚</span>
+                <div>
+                    <h2 class="drawer-title">Bare Acts Knowledge Base</h2>
+                    <p class="drawer-sub">Inventory of indexed statutes, constitutional articles, and ChromaDB chunks</p>
+                </div>
+            </div>
+            <button id="close-kb-modal-btn" class="drawer-close-btn" type="button" title="Close Drawer (Esc)">✕</button>
+        </div>
+
+        <!-- Metrics Overview -->
+        <div class="drawer-metrics-grid">
+            <div class="drawer-metric-item">
+                <span class="dm-label">Total Chunks</span>
+                <span id="modal-total-chunks" class="dm-value">—</span>
+            </div>
+            <div class="drawer-metric-item">
+                <span class="dm-label">Legal Acts</span>
+                <span id="modal-total-docs" class="dm-value">—</span>
+            </div>
+            <div class="drawer-metric-item">
+                <span class="dm-label">Embedding Model</span>
+                <span class="dm-value small">MPNet Multilingual (768d)</span>
+            </div>
+            <div class="drawer-metric-item">
+                <span class="dm-label">Constitution</span>
+                <span class="dm-value small">2024 (106th Amendment)</span>
+            </div>
+        </div>
+
+        <!-- Real-Time Filter Search -->
+        <div class="drawer-search-row">
+            <input id="kb-search-input" type="text" placeholder="Search indexed Acts (e.g. 'BNS', 'Constitution', 'Marriage', 'Contract')...">
+        </div>
+
+        <!-- Acts Table View -->
+        <div class="drawer-table-wrapper">
+            <table class="drawer-table">
+                <thead>
+                    <tr>
+                        <th>Legal Statute</th>
+                        <th>Category</th>
+                        <th>Pages</th>
+                        <th>Chunks</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="kb-documents-tbody"></tbody>
+            </table>
+        </div>
+
+        <!-- Drawer Footer -->
+        <div class="drawer-footer">
+            <span class="drawer-footer-note">⚡ Real-time Hybrid Keyword & Substantive Section Retrieval</span>
+            <label for="pdf-input" class="btn-drawer-upload">
+                <span>+ Upload Document (PDF, TXT, DOCX, MD)</span>
+            </label>
+        </div>
+    </div>
+</div>
+
+<script src="/static/app.js?v=4.6.0"></script>
+</body>
+</html>
