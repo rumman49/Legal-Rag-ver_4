@@ -30,6 +30,14 @@ class Settings(BaseSettings):
     # Empty (default) means same-origin only, which is what the bundled UI needs.
     CORS_ORIGINS: str = ""
 
+    # Retrieval: reranked provisions scoring below this are treated as "no match".
+    # Off-topic queries score ~0.0000-0.0004; weak real matches start around 0.3.
+    RETRIEVAL_MIN_SCORE: float = 0.05
+
+    # Groq: retries for rate limits (429) and connection errors, and per-request timeout in seconds.
+    GROQ_MAX_RETRIES: int = 4
+    GROQ_TIMEOUT_SECONDS: float = 60.0
+
 
     # LangSmith Tracing
     LANGCHAIN_TRACING_V2: str = "false"

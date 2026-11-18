@@ -20,7 +20,9 @@ def get_llm(provider: Optional[str] = None, model_name: Optional[str] = None) ->
             groq_api_key=settings.GROQ_API_KEY,
             model_name=target_model,
             temperature=0.1,
-            max_tokens=800
+            max_tokens=800,
+            max_retries=settings.GROQ_MAX_RETRIES,
+            timeout=settings.GROQ_TIMEOUT_SECONDS,
         )
 
     elif selected_provider == "gemini":

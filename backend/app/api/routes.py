@@ -100,6 +100,7 @@ def ask_legal_question(req: AskRequest, db: Session = Depends(get_db)):
             retriever = get_active_retriever()
             retrieved_docs = retriever.retrieve(retrieval_query, top_k=4)
         except Exception:
+            logger.exception("Retrieval failed; answering with no provisions")
             retrieved_docs = []
 
         # Execute RAG Chain with context & chat history

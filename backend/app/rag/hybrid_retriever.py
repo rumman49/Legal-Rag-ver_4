@@ -18,6 +18,7 @@ from typing import Dict, List, Optional
 
 from langchain_core.documents import Document
 
+from app.core.config import settings
 from app.core.corpus_service import find_chroma_sqlite_path
 from app.rag.bm25_index import get_bm25_index, reset_bm25_index
 from app.rag.legal_refs import extract_references, strong_acts
@@ -149,7 +150,18 @@ class LegalHybridRetriever:
             logger.info(f"No provision found for named reference(s) {[r['raw'] for r in refs]}; declining.")
             return []
 
-        return self._hybrid(query, top_k, pool)
+        docs = self._hybrid(query, top_k, pool)
+
+        # A bare "Article 44" / "section 103" with no act: keep only results with that number,
+        # so unrelated semantic neighbours are not shown as citations. Falls back if none match.
+        numbers = {str(r.get("section_no") or r.get("article_no")) for r in refs
+                   if not r.get("act_needle") and (r.get("section_no") or r.get("article_no"))}
+        if numbers:
+            matched = [d for d in docs
+                       if str(d.metadata.get("section_no") or d.metadata.get("article_no") or "") in numbers]
+            if matched:
+                docs = matched
+        return docs
 
     # ----- exact / structured candidates -------------------------------------------------------
 
@@ -256,4 +268,10 @@ class LegalHybridRetriever:
         # Copies, so reranker metadata writes never leak into the shared BM25 documents.
         pool_docs = [Document(page_content=d.page_content, metadata=dict(d.metadata))
                      for d in candidates[:RERANK_POOL]]
-        return self.reranker.rerank(query, pool_docs, top_k=top_k)
+        ranked = self.reranker.rerank(query, pool_docs, top_k=top_k)
+        # The reranker is an English cross-encoder: it scores Devanagari queries near zero even when
+        # the results are right, so the cutoff applies only to queries that are not in Devanagari.
+        if any("ऀ" <= ch <= "ॿ" for ch in query):
+            return ranked
+        # Drop weak matches so off-topic questions reach the "no provisions found" decline path.
+        return [d for d in ranked if (d.metadata.get("rerank_score") or 0.0) >= settings.RETRIEVAL_MIN_SCORE]
